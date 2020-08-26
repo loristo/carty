@@ -1,28 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, Redirect } from 'react-router-dom';
-import { sha256 } from 'js-sha256';
-import hashedPass from './HashedPass.js';
+import React from 'react';
+import { HashRouter, Switch, Route } from 'react-router-dom';
+import styled from 'styled-components';
+
+import TopBar from './TopBar.js';
+import Carte from './Carte.js';
+import APropos from './APropos.js';
+import Historique from './Historique.js';
+
+const Content = styled.div`
+    display: flex;
+    flex: 1 0 0;
+`;
 
 function Logged() {
-    const [logged, setLogged] = useState(true);
-    const location = useLocation();
-
-    useEffect(() => {
-        const search = location.search;
-        const params = new URLSearchParams(search);
-        if (sha256(params.get('pass') || '') === hashedPass)
-            setLogged(true);
-        else
-            setLogged(false);
-    }, [logged, location]);
-
-    return (! logged
-        ?
-            <Redirect to='/' />
-        :
-            <div>
-                Congrats ! You are logged in.
-            </div>
+    return (
+        <>
+            <TopBar/>
+            <Content>
+                <HashRouter>
+                    <Switch>
+                        <Route path="/historique">
+                            <Historique/>
+                        </Route>
+                        <Route path="/apropos">
+                            <APropos/>
+                        </Route>
+                        <Route>
+                            <Carte/>
+                        </Route>
+                    </Switch>
+                </HashRouter>
+            </Content>
+        </>
     );
 }
 
