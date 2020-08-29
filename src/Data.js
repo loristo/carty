@@ -1,3 +1,5 @@
+import { AES, enc } from 'crypto-js';
+
 const cities = ['Paris', 'Issy-Les-Moulineaux', 'Aubervilliers', 'Vanves'];
 
 const streetNames = ['Rue de la Paix', 'Rue Victor Hugo',
@@ -64,8 +66,10 @@ function addTime(date, time) {
 }
 
 function randomPlaces(nbPlaces, tab, startTime) {
-    let city, street, number, endTime, time;
-    let previous = null;
+    if (!nbPlaces) return;
+    ++nbPlaces; // in order to come back home
+    let city, street, number, time, way, dst;
+    let previous = null; // previous location
     const remaining = (23 - startTime.getHours()) * 60;
     for (let i = 0; i < nbPlaces - 1; ++i)
     {
@@ -73,23 +77,33 @@ function randomPlaces(nbPlaces, tab, startTime) {
         street = streetNames[Math.round(Math.random() * streetNames.length)];
         number = Math.round(Math.random() * 50);
         time = Math.round(rand(0, remaining / nbPlaces, 1));
-        startTime.setMinutes(startTime.getMinutes() + time);
+        way = Math.round(rand(0, 35 < time ? 35 : time, 1));
+        dst = {
+            city: city,
+            street: street,
+            number: number,
+        };
         tab.push({
             startTime: new Date(startTime),
-            endTime: new Date(endTime),
-            time: time,
-            src: home,
-            dst: work,
-            alias: 'Autre'
+            endTime: addTime(startTime, new Date(0, 0, 0, 0, way)),
+            time: way,
+            src: previous || home,
+            dst: dst,
+            alias: 'Autre',
+            recurring: false
         });
+        previous = dst;
+        startTime.setMinutes(startTime.getMinutes() + time);
     }
+    way = Math.round(rand(0, 60, 1));
     tab.push({
-        startTime: new Date(previous),
-        endTime: new Date(endTime),
-        time: time,
-        src: home,
-        dst: work,
-        alias: 'Autre'
+        startTime: new Date(startTime),
+        endTime: addTime(startTime, new Date(0, 0, 0, 0, way)),
+        time: way,
+        src: previous,
+        dst: home,
+        alias: 'Maison',
+        recurring: false
     });
 
 }
@@ -103,8 +117,9 @@ function AddressGenerator() {
     {
         if (i % 7 >= 5) // weekends
         {
-            const nbPlaces = Math.round(rand(0, 3, 1));
-            randomPlaces(nbPlaces, res, addTime(startDate, new Date(0, 0, 0, 8, 0, 0, 0)));
+            const nbPlaces = Math.round(rand(0, 4, 1));
+            randomPlaces(nbPlaces, res, addTime(startDate, new Date(0, 0, 0, 8,
+                rand(0, 120, 1), 0, 0)));
         }
         else // week days
         {
@@ -113,7 +128,7 @@ function AddressGenerator() {
             startTime.setMinutes(startTime.getMinutes()
                 + Math.round(rand(-10, 10, 1)))
             time = timeHomeToWork + Math.round(rand(-5, 5, 1));
-            endTime = startTime;
+            endTime = new Date(startTime);
             endTime.setMinutes(startTime.getMinutes() + time);
             res.push({
                 startTime: new Date(startTime),
@@ -121,32 +136,80 @@ function AddressGenerator() {
                 time: time,
                 src: home,
                 dst: work,
-                alias: 'Travail'
+                alias: 'Travail',
+                recurring: true
             });
 
-            // Going Back Home
-            startTime = addTime(startDate, backFromWorkTime);
-            startTime.setMinutes(backFromWorkTime.getMinutes()
-                + Math.round(rand(-30, 30, 1)))
-            time = timeHomeToWork + Math.round(rand(-15, 15, 1));
-            endTime = startTime;
-            endTime.setMinutes(startTime.getMinutes() + time);
-            res.push({
-                startTime: new Date(startTime),
-                endTime: new Date(endTime),
-                time: time,
-                src: work,
-                dst: home,
-                alias: 'Maison'
-            });
-            const nbPlaces = Math.round(rand(0, 2, 2.5));
-            randomPlaces(nbPlaces, res, addTime(endTime,
-                new Date(0, 0, 0, 0, 0, 0, 0)));
+            if (i > nbDays / 2) // Fraudulous activity
+            {
+                // Going to the hideout
+                startTime = addTime(startDate, backFromWorkTime);
+                startTime.setMinutes(backFromWorkTime.getMinutes()
+                    + Math.round(rand(-30, 30, 1)))
+                time = timeWorkToHideout + Math.round(rand(-15, 15, 1));
+                endTime = new Date(startTime);
+                endTime.setMinutes(startTime.getMinutes() + time);
+                res.push({
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    time: time,
+                    src: work,
+                    dst: hideout,
+                    alias: 'Autre',
+                    recurring: true
+                });
+
+                // Going back home
+                startTime = new Date(endTime);
+                startTime.setMinutes(startTime.getMinutes()
+                    + Math.round(rand(45, 120, 1)))
+                time = timeHideoutToHome + Math.round(rand(-5, 5, 1));
+                endTime = new Date(startTime);
+                endTime.setMinutes(startTime.getMinutes() + time);
+                res.push({
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    time: time,
+                    src: hideout,
+                    dst: home,
+                    alias: 'Maison',
+                    recurring: true
+                });
+            }
+            else
+            {
+                // Going back home
+                startTime = addTime(startDate, backFromWorkTime);
+                startTime.setMinutes(backFromWorkTime.getMinutes()
+                    + Math.round(rand(-30, 30, 1)))
+                time = timeHomeToWork + Math.round(rand(-15, 15, 1));
+                endTime = new Date(startTime);
+                endTime.setMinutes(startTime.getMinutes() + time);
+                res.push({
+                    startTime: new Date(startTime),
+                    endTime: new Date(endTime),
+                    time: time,
+                    src: work,
+                    dst: home,
+                    alias: 'Maison',
+                    recurring: true
+                });
+                const nbPlaces = Math.round(rand(0, 2, 2.5));
+                randomPlaces(nbPlaces, res, addTime(endTime,
+                    new Date(0, 0, 0, 0, rand(0, 60, 1), 0, 0)));
+            }
         }
     }
     return res;
 }
 
-const Data = AddressGenerator();
+const pass = "coucou";
+const data = JSON.stringify(AddressGenerator());
+const crypted = AES.encrypt(data, pass).toString();
+const Data = JSON.parse(AES.decrypt(crypted, pass).toString(enc.Utf8)).map((e) => {
+    e.startTime = new Date(e.startTime);
+    e.endTime = new Date(e.endTime);
+    return e;
+});
 
 export default Data;

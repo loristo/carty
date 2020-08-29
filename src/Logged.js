@@ -8,6 +8,7 @@ import APropos from './APropos.js';
 import Historique from './Historique.js';
 
 const Content = styled.div`
+    overflow: hidden;
     display: flex;
     flex: 1 0 0;
 `;
@@ -16,7 +17,7 @@ function Logged() {
     return (
         <>
             <TopBar/>
-            <Content>
+            <Content id="ciucu">
                 <HashRouter>
                     <Switch>
                         <Route path="/historique">

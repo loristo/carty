@@ -19,7 +19,7 @@ function TopBar() {
                 <Navbar.Brand href={`#/?pass=${pass}`}>Carty</Navbar.Brand>
                 <Nav className="mr-auto">
                     <Nav.Link href={`#/carte/?pass=${pass}`}>Carte</Nav.Link>
-                    <Nav.Link href={`#/historique/?pass=${pass}`}>Historique</Nav.Link>
+                    <Nav.Link href={`#/historique/0/?pass=${pass}`}>Historique</Nav.Link>
                     <Nav.Link href={`#/apropos/?pass=${pass}`}>À propos</Nav.Link>
                 </Nav>
                 <Nav>
