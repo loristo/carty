@@ -1,3 +1,8 @@
+# Carty
+
+## Description
+
+One file website designed for a FIC (_International Security Forum_) challenge.
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
