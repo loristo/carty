@@ -1,3 +1,3 @@
-const hashedPass = 'cenDc6YoLIqy21S/9BrJmgGI/SLP1vEISO0hHWHbtIE=';
+const hashedPass = 'uQvlyl5Lz0FmRHm5c5EqClJAeuwme1e5hiE3vwAYoBE=';
 
 export default hashedPass;

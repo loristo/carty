@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import sha256 from 'crypto-js/sha256';
 import Base64 from 'crypto-js/enc-base64';
 import styled from 'styled-components';
@@ -7,6 +6,7 @@ import styled from 'styled-components';
 import hashedPass from './HashedPass.js';
 import Login from './Login.js';
 import Logged from './Logged.js';
+import PasswordContext from './PasswordContext';
 
 const FlexScreen = styled.div`
     width: 100vw;
@@ -18,22 +18,26 @@ const FlexScreen = styled.div`
 
 function App() {
     const [logged, setLogged] = useState(true);
-    const location = useLocation();
+    const [pass, setPass] = useState('');
+
+    const disconnect = () => setPass('');
 
     useEffect(() => {
-        const search = location.search;
-        const params = new URLSearchParams(search);
-        if (Base64.stringify(sha256(Base64.parse(params.get('pass') || '') || '')) === hashedPass)
+        if (Base64.stringify(sha256(Base64.parse(pass) || '')) === hashedPass)
             setLogged(true);
         else
             setLogged(false);
-    }, [logged, location]);
+    }, [logged, pass]);
 
     return (
         <FlexScreen>
             { logged
-                ? <Logged />
-                : <Login />
+                ?
+                    <PasswordContext.Provider value={pass}>
+                        <Logged disconnect={disconnect}/>
+                    </PasswordContext.Provider>
+                :
+                    <Login setPass={setPass} tried={pass === ''}/>
             }
         </FlexScreen>
     );

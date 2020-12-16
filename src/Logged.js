@@ -13,11 +13,11 @@ const Content = styled.div`
     flex: 1 0 0;
 `;
 
-function Logged() {
+function Logged({ disconnect }) {
     return (
         <>
-            <TopBar/>
-            <Content id="ciucu">
+            <TopBar disconnect={disconnect}/>
+            <Content>
                 <HashRouter>
                     <Switch>
                         <Route path="/historique">

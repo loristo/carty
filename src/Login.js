@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import styled from 'styled-components';
 import sha256 from 'crypto-js/sha256';
 import Base64 from 'crypto-js/enc-base64';
@@ -16,17 +16,16 @@ const LoginDiv = styled.div`
     margin: auto;
 `;
 
-function Login() {
+function Login({ setPass, tried }) {
     const passRef = useRef(null);
-    const [pass, setPass] = useState('');
 
     return (
         <>
-            <Redirect to={`?pass=${encodeURIComponent(pass)}`}/>
+            <Redirect to={``}/>
             <LoginDiv>
                 <Form>
                     <Form.Group controlId="formBasicEmail">
-                        <Form.Label>Adresse mel</Form.Label>
+                        <Form.Label>Adresse mail</Form.Label>
                         <Form.Control defaultValue="edouard.neigedent@haxxx.bad"
                             type="email" placeholder="Entre votre mel" />
                     </Form.Group>
@@ -39,7 +38,7 @@ function Login() {
                 <Button variant="primary" onClick={() => setPass(Base64.stringify(sha256(passRef.current.value)))}>
                     Connexion
                 </Button>
-                <RedText show={pass === '' ? true : false}>
+                <RedText show={tried}>
                     Mauvais mot de passe
                 </RedText>
             </LoginDiv>

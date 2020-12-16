@@ -1,9 +1,11 @@
-import React from 'react';
-import { HashRouter, Switch, Route, useLocation, useRouteMatch } from 'react-router-dom';
+import React, { useState, useContext } from 'react';
+import { HashRouter, Switch, Route, useRouteMatch } from 'react-router-dom';
 import { Tab, ListGroup, Jumbotron } from 'react-bootstrap';
+import { AES, enc } from 'crypto-js';
 import styled from 'styled-components';
 
-import Data from './Data.js';
+import { DataContext, encData } from './Data.js';
+import PasswordContext from './PasswordContext';
 
 const Content = styled.div`
     flex: 1 0 0;
@@ -45,10 +47,7 @@ const FullJumbotron = styled.div`
 `;
 
 function Liste() {
-    const location = useLocation();
-    const search = location.search;
-    const params = new URLSearchParams(search);
-    const pass = encodeURIComponent((params.get('pass')));
+    const data = useContext(DataContext);
     let day = null;
 
     const updateDay = (e) => {
@@ -62,11 +61,11 @@ function Liste() {
         );
     }
 
-    const ways = Data.map((e, i) => {
+    const ways = data.map((e, i) => {
         return (
             <React.Fragment key={i}>
                 {updateDay(e)}
-                <ListGroup.Item action href={`#/historique/${i}/?pass=${pass}`}>
+                <ListGroup.Item action href={`#/historique/${i}/`}>
                     <Text>
                         {e.src.city} &rarr; {e.dst.city}
                         {e.recurring
@@ -81,7 +80,7 @@ function Liste() {
 
     return (
         <Tab.Container id="list-group-tabs-example"
-            defaultActiveKey={`#/historique/0/?pass=${pass}`}>
+            defaultActiveKey={`#/historique/0/`}>
             <ListGroup>
                 {ways}
             </ListGroup>
@@ -103,10 +102,11 @@ function genDate(date) {
 
 function Summary() {
     const match = useRouteMatch();
+    const data = useContext(DataContext);
     let id = parseInt(match.params.trajet);
-    if (!Number.isInteger(id) || id < 0 || id >= Data.length)
+    if (!Number.isInteger(id) || id < 0 || id >= data.length)
         id = 0;
-    const trajet = Data[id];
+    const trajet = data[id];
     return (
         <FullJumbotron>
             <Jumbotron>
@@ -134,8 +134,18 @@ function Summary() {
 }
 
 function Historique() {
+    const pass = useContext(PasswordContext);
+    const [data, ] = useState(
+        JSON.parse((AES.decrypt(encData, pass) || '[]').toString(enc.Utf8)).map((e) => {
+        e.startTime = new Date(e.startTime);
+        e.endTime = new Date(e.endTime);
+        return e;
+    }));
+
+
     return (
         <Content>
+            <DataContext.Provider value={data}>
             <ListDiv>
                 <Liste />
             </ListDiv>
@@ -151,6 +161,7 @@ function Historique() {
                     </Switch>
                 </HashRouter>
             </SummaryDiv>
+            </DataContext.Provider>
         </Content>
     );
 }
